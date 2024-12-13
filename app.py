@@ -195,12 +195,12 @@ def get_model(checkpoint_path):
 
 def main():
     st.title("Medical Report Generation")
-    model_name = "en_core_web_trf"
+    # model_name = "en_core_web_trf"
 
-    # Ensure Spacy model is installed
-    install_spacy_model(model_name)
-    sentence_tokenizer = spacy.load(model_name)
-    st.success("Spacy model loaded successfully.")
+    # # Ensure Spacy model is installed
+    # install_spacy_model(model_name)
+    # sentence_tokenizer = spacy.load(model_name)
+    # st.success("Spacy model loaded successfully.")
 
     checkpoint_path = "D:\\Report generation\\full_model_checkpoint_val_loss_19.793_overall_steps_155252.pt"
     model = get_model(checkpoint_path)
