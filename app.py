@@ -25,6 +25,16 @@ from PIL import Image
 import io
 import gdown
 
+def install_spacy_model(model_name):
+    """Ensure the Spacy model is installed."""
+    try:
+        spacy.load(model_name)
+        st.success(f"Model '{model_name}' is already installed.")
+    except OSError:
+        st.warning(f"Downloading Spacy model '{model_name}'. Please wait...")
+        subprocess.run([sys.executable, "-m", "spacy", "download", model_name], check=True)
+        st.success(f"Model '{model_name}' downloaded successfully.")
+
 def download_model():
     url = "https://drive.google.com/uc?id=1rDxqzOhjqydsOrITJrX0Rj1PAdMeP7Wy"  # Shared link
     output = "model_checkpoint.pt"
@@ -184,50 +194,23 @@ def get_model(checkpoint_path):
 
 
 def main():
-    checkpoint_path = download_model()
+    st.title("Medical Report Generation")
+    model_name = "en_core_web_trf"
 
+    # Ensure Spacy model is installed
+    install_spacy_model(model_name)
+    sentence_tokenizer = spacy.load(model_name)
+    st.success("Spacy model loaded successfully.")
+
+    checkpoint_path = "D:\\Report generation\\full_model_checkpoint_val_loss_19.793_overall_steps_155252.pt"
     model = get_model(checkpoint_path)
-
-    print("Model instantiated.")
-
-    # paths to the images that we want to generate reports for
-    images_paths = [
-        "D:\\Report generation\\iu_xray\\iu_xray\\images\\CXR1_1_IM-0001\\0.png"
-    ]
-
-    generated_reports_txt_path = "1.txt"
-    generated_reports = []
 
     bert_score = evaluate.load("bertscore")
     sentence_tokenizer = spacy.load("en_core_web_trf")
     tokenizer = get_tokenizer()
 
-    # if you encounter a spacy-related error, try upgrading spacy to version 3.5.3 and spacy-transformers to version 1.2.5
-    # pip install -U spacy
-    # pip install -U spacy-transformers
-
-    for image_path in tqdm(images_paths):
-        image_tensor = get_image_tensor(image_path)  # shape (1, 1, 512, 512)
-        generated_report = get_report_for_image(model, image_tensor, tokenizer, bert_score, sentence_tokenizer)
-        generated_reports.append(generated_report)
-
-    write_generated_reports_to_txt(images_paths, generated_reports, generated_reports_txt_path)
-
-
-if __name__ == "__main__":
-    main()
-    def main():
-        st.title("Medical Report Generation")
-
-        checkpoint_path = "D:\\Report generation\\full_model_checkpoint_val_loss_19.793_overall_steps_155252.pt"
-        model = get_model(checkpoint_path)
-
-        bert_score = evaluate.load("bertscore")
-        sentence_tokenizer = spacy.load("en_core_web_trf")
-        tokenizer = get_tokenizer()
-
-        uploaded_file = st.file_uploader("Choose an image...", type=["png", "jpg", "jpeg"])
-        if uploaded_file is not None:
+    uploaded_file = st.file_uploader("Choose an image...", type=["png", "jpg", "jpeg"])
+    if uploaded_file is not None:
             image = Image.open(uploaded_file).convert("L")
             st.image(image, caption="Uploaded Image", use_column_width=True)
 
@@ -241,5 +224,5 @@ if __name__ == "__main__":
             st.subheader("Generated Report")
             st.write(generated_report)
 
-    if __name__ == "__main__":
-        main()
+if __name__ == "__main__":
+    main()
